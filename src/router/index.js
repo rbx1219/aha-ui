@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import store from '../store/index';
+import ErrorCode from '@/constants/apiErrorCodes';
 
 Vue.use(VueRouter)
   const routes = [
@@ -19,6 +21,32 @@ Vue.use(VueRouter)
     component: () => import('../components/ForgotPassword.vue')
   },
   {
+    path: '/login/sess',
+    beforeEnter: async (to, from, next) => {
+      const storeUser = store.state.user;
+
+      if (storeUser) {
+        if (to.path !== '/dashboard/me') {
+          return next('/dashboard/me');
+        }
+        return next();
+      }
+
+      try {
+        const response = await store.dispatch('fetchUserBySession');
+
+        if (store.state.user) {
+          return next('/dashboard/me');
+        }
+
+        return next({ path: '/' });
+      } catch (error) {
+        console.error("Error fetching user by session:", error);
+        return next({ path: '/' });
+      }
+    }
+  },
+  {
     path: '/merge-account',
     name: 'merge-account',
     component: () => import('../components/MergeAccount.vue'),
@@ -30,6 +58,20 @@ Vue.use(VueRouter)
         next();
       }
     }
+  },
+  {
+    path: '/dashboard',
+    component: () => import('../components/DashboardComponent.vue'),
+    children: [
+      {
+        path: 'me',
+        component: () => import('../components/MeComponent.vue')
+      },
+      {
+        path: 'statistics',
+        component: () => import('../components/MeComponent.vue')
+      }
+    ]
   }
 ]
 const router = new VueRouter({
@@ -37,4 +79,12 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 })
+router.beforeEach((to, from, next) => {
+  if (!store.state.sessionChecked && to.path !== '/login/sess') {
+    next({ path: '/login/sess', query: { redirect: to.fullPath } });
+  } else {
+    next();
+  }
+});
+
 export default router
