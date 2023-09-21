@@ -1,89 +1,96 @@
 import Vue from 'vue';
-import VueRouter from 'vue-router';
-import store from '../store/index';
+import Router from 'vue-router';
 
-Vue.use(VueRouter)
-  const routes = [
+// 導入組件
+import ForgotPassword from '@/components/ForgotPassword.vue';
+import MeComponent from '@/components/MeComponent.vue';
+import ResetPassword from '@/components/ResetPassword.vue';
+import StatisticsComponent from '@/components/StatisticsComponent.vue';
+import Login from '@/components/UserLogin.vue';
+import UserMerge from '@/components/UserMerge.vue';
+import Signup from '@/components/UserSignup.vue';
+import UserVerify from '@/components/UserVerify.vue';
+import DashboardLayout from '@/layouts/DashboardLayout.vue';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import store from '@/store';
+
+Vue.use(Router);
+
+const routes = [
   {
     path: '/',
-    name: 'signup',
-    component: () => import('../components/SignupComp.vue')
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import('../components/LoginComp.vue')
-  },
-  {
-    path: '/forgot-password',
-    name: 'forgot-password',
-    component: () => import('../components/ForgotPassword.vue')
-  },
-  {
-    path: '/login/sess',
-    beforeEnter: async (to, from, next) => {
-      const storeUser = store.state.user;
-
-      if (storeUser) {
-        if (to.path !== '/dashboard/me') {
-          return next('/dashboard/me');
+    component: DefaultLayout,
+    children: [
+      { path: '', redirect: '/login' },
+      { path: 'login', name: 'login', component: Login },
+      { path: 'signup', component: Signup },
+      { path: 'forgot-password', component: ForgotPassword },
+      { path: 'reset-password', component: ResetPassword },
+      { path: 'logout', beforeEnter: async () => {
+          try {
+            await store.dispatch('handleLogout');
+            window.location.reload();
+          } catch (err) {
+            console.log(err);
+          }
         }
-        return next();
-      }
-
-      try {
-        await store.dispatch('fetchUserBySession');
-
-        if (store.state.user) {
-          return next('/dashboard/me');
-        }
-
-        return next({ path: '/' });
-      } catch (error) {
-        console.error("Error fetching user by session:", error);
-        return next({ path: '/' });
-      }
-    }
-  },
-  {
-    path: '/merge-account',
-    name: 'merge-account',
-    component: () => import('../components/MergeAccount.vue'),
-    props: route => ({ errorCode: route.params.errorCode, mergeKey: route.params.mergeKey }),
-    beforeEnter: (to, from, next) => {
-      if (!to.params.errorCode || !to.params.mergeKey) {
-        next('/');
-      } else {
-        next();
-      }
-    }
+      },
+      {
+        path: 'merge',
+        name: 'merge-account',
+        component: UserMerge,
+        props: route => ({
+          errorCode: parseInt(route.query.errCode, 10),
+          mergeKey: route.query.mergeKey
+        })
+      },
+    ]
   },
   {
     path: '/dashboard',
-    component: () => import('../components/DashboardComponent.vue'),
+    component: DashboardLayout,
     children: [
-      {
-        path: 'me',
-        component: () => import('../components/MeComponent.vue')
-      },
-      {
-        path: 'statistics',
-        component: () => import('../components/MeComponent.vue')
-      }
+      { path: '', redirect: 'statistics' },
+      { path: 'statistics', name: 'statistics', component: StatisticsComponent },
+      { path: 'me', component: MeComponent },
+      { path: 'verify', component: UserVerify }
     ]
   }
-]
-const router = new VueRouter({
+];
+
+const router = new Router({
   mode: 'history',
-  base: process.env.BASE_URL,
   routes
-})
-router.beforeEach((to, from, next) => {
-  if (!store.state.sessionChecked && to.path !== '/login/sess') {
-    next({ path: '/login/sess', query: { redirect: to.fullPath } });
+});
+
+router.beforeEach(async (to, from, next) => {
+  await store.dispatch('fetchUserBySession');
+  const hasSession = store.state.user !== null;
+
+  if (!hasSession) {
+    if (to.path === '/login' || to.path === '/signup' || to.path === '/forgot-password' || to.path === 'reset-password' || to.path === '/merge') {
+      next();
+    } else {
+      next('/login');
+    }
   } else {
-    next();
+    const user = store.state.user;
+
+    if (to.path.startsWith('/logout')) {
+      next();
+    }
+
+    if (user.isVerified && to.path === '/dashboard/verify') {
+      next('/dashboard');  // 如果用戶已驗證，但試圖訪問 /dashboard/verify，則重新導向到 /dashboard
+    } else if (!user.isVerified && to.path !== '/dashboard/verify') {
+      next('/dashboard/verify');
+    } else if (to.path.startsWith('/dashboard')) {
+      next();
+    } else {
+      next('/dashboard');
+    }
   }
 });
 
-export default router
+
+export default router;

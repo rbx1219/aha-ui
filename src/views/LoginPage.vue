@@ -21,8 +21,6 @@
   </script>
 
   <style scoped>
-  /* 页面的样式 */
   .login-page {
-    /* 样式规则... */
   }
   </style>

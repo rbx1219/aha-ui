@@ -13,7 +13,11 @@
             <label>Confirm Password</label>
             <input v-model="cpass" type="password" class="form-control form-control-lg" />
         </div>
-        <button @click="triggerSignup" class="btn btn-dark btn-lg btn-block">Sign Up</button>
+
+        <div class="container d-flex align-items-center justify-content-between">
+            <button @click="triggerSignup" class="btn btn-dark btn-lg btn-block"  style="height: 46px;">Sign up</button>
+            <button class="google-login-button" @click="goToGoogleLogin"></button>
+        </div>
         <p class="error-msg" v-if="errorMsg">{{ errorMsg }}</p>
         <p class="forgot-password text-right">
             Already registered
@@ -30,7 +34,8 @@
                 email: "liwei.lin.soso@gmail.com",
                 password: "AhaXDQQQ@!123",
                 cpass: "AhaXDQQQ@!123",
-                errorMsg: ""
+                errorMsg: "",
+                googleLoginUrl: process.env.VUE_APP_BASE_URL + '/auth/google'
             }
         },
         methods: {
@@ -98,13 +103,32 @@
                 } catch (error) {
                     console.error("Signup failed:", error.message);
                 }
+            },
+            goToGoogleLogin() {
+                window.location.href = this.googleLoginUrl;
             }
         }
     }
 </script>
-<style>
+<style scoped>
 .error-msg {
     color: red;
     margin-top: 10px;
+}
+.google-login-button {
+  width: 191px;
+  height: 46px;
+  background-image: url(~@/assets/images/btn_google_signin_dark_normal_web@2x.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+.google-login-button:hover {
+  background-image: url(~@/assets/images/btn_google_signin_dark_focus_web@2x.png);
+}
+.google-login-button:active {
+  background-image: url(~@/assets/images/btn_google_signin_dark_pressed_web@2x.png);
 }
 </style>

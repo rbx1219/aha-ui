@@ -9,11 +9,15 @@ async function signup(userData) {
         body: JSON.stringify(userData)
     });
 
+    if (response.redirected) {
+        window.location.href = response.url;
+        return;
+    }
+
     if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || 'Signup failed');
     }
-
     return await response.json();
 }
 
