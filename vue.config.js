@@ -7,7 +7,8 @@ module.exports = defineConfig({
 			'Access-Control-Allow-Origin': '*',
 		},
 		client: {
-			logging: 'verbose'
+			logging: 'verbose',
+			webSocketURL: 'wss://rbxhome.synology.me/ws'
 		}
 	}
 })

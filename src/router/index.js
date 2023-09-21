@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import store from '../store/index';
-import ErrorCode from '@/constants/apiErrorCodes';
 
 Vue.use(VueRouter)
   const routes = [
@@ -33,7 +32,7 @@ Vue.use(VueRouter)
       }
 
       try {
-        const response = await store.dispatch('fetchUserBySession');
+        await store.dispatch('fetchUserBySession');
 
         if (store.state.user) {
           return next('/dashboard/me');
