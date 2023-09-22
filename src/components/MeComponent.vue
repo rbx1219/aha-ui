@@ -13,20 +13,30 @@
       <label class="profile-label">User ID:</label>
       <span class="profile-detail">{{ user.id }}</span>
     </div>
-    <!-- Add other relevant user details here... -->
+    <button @click="showDialog = true">Reset Password</button>
+    <PasswordResetDialog :visible="showDialog" @cancel="showDialog = false" />
   </div>
 </template>
 
 
-  <script>
-  import { mapState } from 'vuex';
+<script>
+import { mapState } from 'vuex';
+import PasswordResetDialog from '@/components/PasswordResetDialog.vue';
 
-  export default {
-    computed: {
-      ...mapState(['user'])
-    }
-  };
-  </script>
+export default {
+  components: {
+    PasswordResetDialog
+  },
+  data() {
+    return {
+      showDialog: false
+    };
+  },
+  computed: {
+    ...mapState(['user'])
+  }
+};
+</script>
 
 <style scoped>
 .profile-container {
@@ -49,8 +59,10 @@
 .profile-item {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* Vertically align center */
-  padding: 8px 0; /* Add some padding for spacing */
+  align-items: center;
+  /* Vertically align center */
+  padding: 8px 0;
+  /* Add some padding for spacing */
 }
 
 .profile-label {

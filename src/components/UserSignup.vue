@@ -1,9 +1,9 @@
 <template>
-    <div class="vue-tempalte">
+    <div class="vue-tempalte" @keyup.enter="triggerSignup">
         <h3>Sign Up</h3>
         <div class="mb-3">
             <label>Email address</label>
-            <input v-model="email" type="email" class="form-control form-control-lg" />
+            <input v-model="email" @blur="checkEmailValid" type="email" class="form-control form-control-lg" />
         </div>
         <div class="mb-3">
             <label>Password</label>
@@ -27,54 +27,36 @@
 </template>
 <script>
     import { ErrorCode } from '@/constants/apiErrorCodes';
+import passwordValidationMixin from '@/mixins/passwordValidationMixin';
 
     export default {
+        mixins: [passwordValidationMixin],
         data() {
             return {
-                email: "liwei.lin.soso@gmail.com",
-                password: "AhaXDQQQ@!123",
-                cpass: "AhaXDQQQ@!123",
+                email: "",
+                password: "",
+                cpass: "",
                 errorMsg: "",
-                googleLoginUrl: process.env.VUE_APP_BASE_URL + '/auth/google'
+                googleLoginUrl: process.env.VUE_APP_BASE_URL + '/auth/google',
+                isEmailValid: false,
             }
         },
         methods: {
-            validatePassword() {
-                if (this.password !== this.cpass) {
-                    return "Password doesn't match the confirmation.";
-                }
-
-                if (!/[a-z]/.test(this.password)) {
-                    return "Password should contain at least one lower character.";
-                }
-
-                if (!/[A-Z]/.test(this.password)) {
-                    return "Password should contain at least one upper character.";
-                }
-
-                if (!/[0-9]/.test(this.password)) {
-                    return "Password should contain at least one digit character.";
-                }
-
-                if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+/.test(this.password)) {
-                    return "Password should contain at least one special character.";
-                }
-
-                if (this.password.length < 8) {
-                    return "Password should contain at least 8 characters.";
-                }
-
-                return null;  // 如果没有验证失败，返回 null
-            },
             async triggerSignup() {
                 this.errorMsg = "";
 
-                const validationResult = this.validatePassword();
+                const validationResult = this.validatePassword(this.password, this.cpass);
 
                 if (validationResult) {
                     this.errorMsg = validationResult;
                     return;
                 }
+
+                // this.checkEmailValid();
+                // if (!this.isEmailValid) {
+                //     this.errorMsg = this.errorMsg || 'empty email'
+                //     return;
+                // }
 
                 try {
                     const response = await this.$store.dispatch('handleSignup', {
@@ -106,6 +88,19 @@
             },
             goToGoogleLogin() {
                 window.location.href = this.googleLoginUrl;
+            },
+            validateEmail(email) {
+                const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+                return emailRegex.test(email);
+            },
+            checkEmailValid() {
+                this.isEmailValid = this.validateEmail(this.email);  // Validate email on blur
+
+                if (!this.isEmailValid) {
+                    this.errorMsg = "Please provide a valid email address.";
+                } else {
+                    this.errorMsg = "";  // Clear the error message if the email is valid
+                }
             }
         }
     }

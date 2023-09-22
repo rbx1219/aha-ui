@@ -4,6 +4,7 @@ import { logout } from '@/api/logout.js';
 import { mergeAccounts } from '@/api/merge.js';
 import { signup } from '@/api/signup.js';
 import { getActive, getDashboardUsers } from '@/api/statistics';
+import { ErrorCode } from '@/constants/apiErrorCodes';
 import Vue from 'vue';
 import Vuex from 'vuex';
 
@@ -12,16 +13,12 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     user: null,
-    sessionChecked: false,
     dashboardUsers: null,
     activeStats: null,
   },
   mutations: {
     SET_USER(state, user) {
       state.user = user;
-    },
-    SET_CHECKED_SESSION(state) {
-      state.sessionChecked = true;
     },
     SET_DASHBOARD_USERS(state, users) {
       state.dashboardUsers = users;
@@ -34,21 +31,17 @@ export default new Vuex.Store({
     setUser({ commit }, user) {
       commit('SET_USER', user);
     },
-    async fetchUserBySession({commit, state}) {
-      if (state.sessionChecked && state.user) {
-        return;
-      }
-
+    async fetchUserBySession({commit}) {
       try {
         const response = await getUserBySession();
-        const {user} = response;
+        const {user, errorCode} = response;
 
-        if (user && user.id) {
+        if (errorCode === ErrorCode.NO_VALID_SESSION) {
+          commit('SET_USER', null);
+        } else if (user && user.id) {
           commit('SET_USER', user);
         }
-        commit('SET_CHECKED_SESSION', true);
       } catch (error) {
-        commit('SET_CHECKED_SESSION', true);
         console.error("fetchUser failed:", error.message);
       }
     },

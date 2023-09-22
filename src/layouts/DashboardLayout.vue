@@ -23,9 +23,7 @@
     <div class="container-fluid">
       <div class="row justify-content-center">
         <div class="col-lg-6 main-content d-flex justify-content-center align-items-center">
-          <keep-alive>
             <router-view />
-          </keep-alive>
         </div>
       </div>
     </div>

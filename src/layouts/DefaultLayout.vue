@@ -31,16 +31,9 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
 
 export default {
   name: 'DefaultLayout',
-  computed: {
-    ...mapState([
-      // 將您需要的Vuex state映射到此組件
-      // 'yourStateName'
-    ])
-  }
 }
 </script>
 

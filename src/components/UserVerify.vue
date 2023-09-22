@@ -28,7 +28,7 @@ export default {
   },
   methods: {
     async doSend() {
-      this.isButtonDisabled = true;  // 禁用按鈕
+      this.isButtonDisabled = true;
 
       const response = await sendVerification(this.user.id);
       if (response.errCode !== ErrorCode.SUCCESS) {

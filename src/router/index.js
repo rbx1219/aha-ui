@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 
-// 導入組件
 import ForgotPassword from '@/components/ForgotPassword.vue';
 import MeComponent from '@/components/MeComponent.vue';
 import ResetPassword from '@/components/ResetPassword.vue';
@@ -53,7 +52,7 @@ const routes = [
       { path: '', redirect: 'statistics' },
       { path: 'statistics', name: 'statistics', component: StatisticsComponent },
       { path: 'me', component: MeComponent },
-      { path: 'verify', component: UserVerify }
+      { path: 'verify', name: 'verify', component: UserVerify }
     ]
   }
 ];
@@ -68,29 +67,35 @@ router.beforeEach(async (to, from, next) => {
   const hasSession = store.state.user !== null;
 
   if (!hasSession) {
-    if (to.path === '/login' || to.path === '/signup' || to.path === '/forgot-password' || to.path === 'reset-password' || to.path === '/merge') {
-      next();
+    if (['/login', '/signup', '/forgot-password', '/reset-password', '/merge'].includes(to.path)) {
+      return next();
     } else {
-      next('/login');
-    }
-  } else {
-    const user = store.state.user;
-
-    if (to.path.startsWith('/logout')) {
-      next();
-    }
-
-    if (user.isVerified && to.path === '/dashboard/verify') {
-      next('/dashboard');  // 如果用戶已驗證，但試圖訪問 /dashboard/verify，則重新導向到 /dashboard
-    } else if (!user.isVerified && to.path !== '/dashboard/verify') {
-      next('/dashboard/verify');
-    } else if (to.path.startsWith('/dashboard')) {
-      next();
-    } else {
-      next('/dashboard');
+      return next('/login');
     }
   }
-});
 
+  const user = store.state.user;
+
+  // Allow logout regardless of verification status
+  if (to.path.startsWith('/logout')) {
+    return next();
+  }
+
+  // Handle unverified users.
+  if (!user.isVerified) {
+    if (to.path === '/dashboard/verify') {
+      return next();
+    } else {
+      return next('/dashboard/verify');
+    }
+  }
+
+  // For verified users.
+  if (to.path.startsWith('/dashboard')) {
+    return next();
+  } else {
+    return next('/dashboard/statistics');
+  }
+});
 
 export default router;

@@ -1,8 +1,8 @@
 const BASE_URL = process.env.VUE_APP_BASE_URL || 'http://localhost:3000';
 
-async function signup(userData) {
-    const response = await fetch(`${BASE_URL}/auth/signup`, {
-        method: "POST",
+async function updatePassword(userData) {
+    const response = await fetch(`${BASE_URL}/user/update-password`, {
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json"
         },
@@ -21,4 +21,4 @@ async function signup(userData) {
     return await response.json();
 }
 
-export { signup };
+export { updatePassword };

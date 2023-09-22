@@ -1,18 +1,30 @@
 <template>
     <div class="vue-tempalte">
         <h3>Sign In</h3>
+        <!-- Email input -->
         <div class="mb-3">
             <label>Email address</label>
-            <input v-model="email" type="email" class="form-control form-control-lg" />
+            <input v-model="email" type="email" class="form-control form-control-lg" @blur="checkEmailValid" />
         </div>
+
+        <!-- Password input -->
         <div class="mb-3">
             <label>Password</label>
             <input v-model="password" type="password" class="form-control form-control-lg" />
         </div>
+
+        <!-- Error message display -->
+        <div class="mb-3" v-if="errorMessage" style="color: red;">
+            {{ errorMessage }}
+        </div>
+
+        <!-- Sign In button -->
         <div class="container d-flex align-items-center justify-content-between">
-            <button @click="handleLogin" class="btn btn-dark btn-lg btn-block"  style="height: 46px;">Sign In</button>
+            <button @click="handleLogin" class="btn btn-dark btn-lg btn-block" style="height: 46px;">Sign In</button>
             <button class="google-login-button" @click="goToGoogleLogin"></button>
         </div>
+
+        <!-- Forgot password link -->
         <p class="forgot-password text-right mt-2 mb-4">
             <router-link to="/forgot-password">Forgot password?</router-link>
         </p>
@@ -22,24 +34,38 @@
 <script>
 export default {
     data() {
-        return {
-            email: "liwei.lin.soso@gmail.com",
-            password: "AhaXDQQQ@!123",
-            googleLoginUrl: process.env.VUE_APP_BASE_URL + '/auth/google'
-        };
+    return {
+        email: "",
+        password: "",
+        googleLoginUrl: process.env.VUE_APP_BASE_URL + '/auth/google',
+        errorMessage: "", // Initialize errorMessage to an empty string
+        isEmailValid: false,  // New variable to track email validation state
+    };
+},
+methods: {
+    validateEmail(email) {
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        return emailRegex.test(email);
     },
-    methods: {
-        async handleLogin() {
-            try {
-                await this.$store.dispatch('handleLogin', {
-                    email: this.email,
-                    password: this.password
-                });
-                this.$router.push('/dashboard');
-            } catch (error) {
-                console.error("Login failed:", error.message);
-            }
-        },
+    async handleLogin() {
+        this.isEmailValid = this.validateEmail(this.email);  // Validate email before login
+
+        if (!this.isEmailValid) {
+            this.errorMessage = "Please provide a valid email address.";
+            return;
+        }
+
+        try {
+            await this.$store.dispatch('handleLogin', {
+                email: this.email,
+                password: this.password
+            });
+            this.$router.push('/dashboard').catch(() => {});
+        } catch (error) {
+            console.error("Login failed:", error.message);
+            this.errorMessage = error.message; // Set errorMessage on login failure
+        }
+    },
         goToGoogleLogin() {
            window.location.href = this.googleLoginUrl;
         }
